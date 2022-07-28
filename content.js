@@ -1,21 +1,55 @@
-const anchors = document.querySelectorAll("a[href]");
+const target_list = [
+    {
+        target: /juejin\.cn/,
+        rules: [
+            {
+                check: /link\.juejin\.cn\/\?target=/,
+                match: /.*\?target=(.*)/
+            }
+        ]
+    }
+
+];
 
 function modify() {
-    if( ! /juejin\.cn/.test(window.location.href) ) return;
+    let rules = null;
+    const url = window.location.href;
 
-    console.log( window.location );
-
-    [].forEach.call(anchors, ( a => {
-        if (/link\.juejin\.cn\/\?target=/.test(a.href)) {
-            const result = a.href.match(/.*\?target=(.*)/);
-            const url = decodeURIComponent(result[1]) || '';
-
-            if (url.length) {
-                a.href = url;
-                console.log(url)
-            }
+    const insideTarget = target_list.some( info => {
+        if( info.target.test( url ) ) {
+            rules = info.rules;
+            return true;
         }
-    }));
+
+        return false;
+    });
+
+    if( insideTarget ) {
+        console.log("Hello from Href Modifier");
+        const anchors = document.querySelectorAll("a[href]");
+        console.log( anchors );
+
+        [].forEach.call(anchors, ( a => {
+            const href = a.href;
+
+            rules.forEach( rule => {
+                if ( rule.check.test(href) ) {
+                    const result = href.match( rule.match );
+                    const url = decodeURIComponent(result[1]) || '';
+
+                    if (url.length) {
+                        console.log(`[Href Modifier] From ${ a.href } => ${ url }`)
+                        a.href = url;
+                    }
+                }
+            });
+        }));
+    }
 }
 
-modify();
+/**
+ * Wait Until Post Loaded
+ */
+window.onload = () => {
+    modify();
+}
