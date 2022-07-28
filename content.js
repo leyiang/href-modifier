@@ -1,22 +1,40 @@
-const target_list = [
-    {
-        target: /juejin\.cn/,
-        rules: [
-            {
-                check: /link\.juejin\.cn\/\?target=/,
-                match: /.*\?target=(.*)/
-            }
-        ]
-    }
-
+let targets = [
+    // {
+    //     target: "juejin.cn",
+    //     rules: [
+    //         {
+    //             check: "link.juejin.cn/?target=",
+    //             match: ".*\?target=(.*)"
+    //         }
+    //     ]
+    // }
 ];
+
+chrome.storage.sync.get("targets", raw => {
+    console.log( raw );
+
+    if( Array.isArray(raw.targets) ) {
+        targets = raw.targets;
+    }
+});
+
+// chrome.storage.sync.set({
+//     targets
+// })
+
+function escapeRegExp(string) {
+    return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); // $& means the whole matched string
+}
+function getRegExp(string) {
+    return new RegExp( escapeRegExp(string) );
+}
 
 function modify() {
     let rules = null;
     const url = window.location.href;
 
-    const insideTarget = target_list.some( info => {
-        if( info.target.test( url ) ) {
+    const insideTarget = targets.some( info => {
+        if( getRegExp(info.target).test( url ) ) {
             rules = info.rules;
             return true;
         }
@@ -27,15 +45,15 @@ function modify() {
     if( insideTarget ) {
         console.log("Hello from Href Modifier");
         const anchors = document.querySelectorAll("a[href]");
-        console.log( anchors );
 
         [].forEach.call(anchors, ( a => {
             const href = a.href;
 
             rules.forEach( rule => {
-                if ( rule.check.test(href) ) {
-                    const result = href.match( rule.match );
-                    const url = decodeURIComponent(result[1]) || '';
+                if ( getRegExp(rule.check).test(href) ) {
+                    const matchReg = new RegExp( rule.match );
+                    const result = href.match( matchReg );
+                    const url = decodeURIComponent(result?.[1]) || '';
 
                     if (url.length) {
                         console.log(`[Href Modifier] From ${ a.href } => ${ url }`)
