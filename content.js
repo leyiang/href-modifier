@@ -11,8 +11,6 @@ let targets = [
 ];
 
 chrome.storage.sync.get("targets", raw => {
-    console.log( raw );
-
     if( Array.isArray(raw.targets) ) {
         targets = raw.targets;
     }
