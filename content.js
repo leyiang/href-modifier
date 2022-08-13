@@ -69,5 +69,15 @@ function modify() {
  * Wait Until Post Loaded
  */
 window.onload = () => {
-    modify();
+    /**
+     * Some sites utilize frontend framework to build SPA
+     * So the content is loaded util the api endpoint is resolved
+     * Window.onload is the prior one, so we have to set a Timeout (try to guess)
+     * But since we don't click a link as soon as we open a webpage, it's fine.
+     */
+    setTimeout(() => {
+        modify();
+        // TODO: Export the timeout option
+        // Let user choose the timeout value
+    }, 2000 );
 }
